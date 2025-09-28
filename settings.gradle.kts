@@ -16,6 +16,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://maven.pkg.github.com/k2-fsa/sherpa-ncnn")
+            credentials {
+                username = "token"
+                password = System.getenv("GITHUB_TOKEN") ?: System.getenv("GPR_API_KEY_READ")
+            }
+        }
     }
 }
 
