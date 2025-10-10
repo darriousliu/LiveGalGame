@@ -390,12 +390,26 @@ private fun CameraScreenContent(
             // 进度条 + 倒计时（右下角，宽度为屏幕的 1/6）
             val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
             val progressWidth = (screenWidthDp / 8)
-            Column(
+            Row(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 24.dp, bottom = 40.dp),
-                horizontalAlignment = Alignment.End
+                    .padding(end = 24.dp, bottom = 40.dp)
+                    .zIndex(3f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                Image(
+                    painter = painterResource(id = R.drawable.strbcake),
+                    contentDescription = "Progress icon",
+                    modifier = Modifier
+                        .offset(x = 16.dp, y = 6.dp)
+                        .width(48.dp)
+                        .height(48.dp)
+                )
+
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
 //                Text(
 //                    text = String.format("下次更新: %.1f s", timeRemainingSec),
 //                    color = Color.White,
@@ -441,13 +455,14 @@ private fun CameraScreenContent(
                     )
                 }
 
-                // 进度条位于上层，宽度小一些以露出背景作为描边
-                LinearProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier
-                        .width(progressWidth)
-                        .height(6.dp)
-                )
+                    // 进度条位于上层，宽度小一些以露出背景作为描边
+                    LinearProgressIndicator(
+                        progress = progress,
+                        modifier = Modifier
+                            .width(progressWidth)
+                            .height(6.dp)
+                    )
+                }
             }
 
             // 字幕层
@@ -541,7 +556,7 @@ fun CameraScreenPreview() {
             captionToShow = "这是第一句已经识别完成的字幕。\n这是第二句，仍在识别中...",
             progress = 0.5f,
             timeRemainingSec = 2.5f,
-            chapterTitle = "Chapter 1: Prologue",
+            chapterTitle = "Chapter 1-2",
             previewView = {
                 Box(modifier = Modifier.fillMaxSize().background(Color.DarkGray))
             }
