@@ -11,9 +11,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,7 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.livegg1.dialog.KeywordDialog
 import com.example.livegg1.dialog.TriggerManagementDialog
@@ -79,16 +79,22 @@ class MainActivity : ComponentActivity() {
                     val lifecycleOwner = LocalLifecycleOwner.current
                     var triggers by remember {
                         mutableStateOf(
-                            listOf(KeywordTrigger(keyword = "吗", dialogType = DialogType.CHOICE_DIALOG))
+                            listOf(
+                                KeywordTrigger(
+                                    keyword = "吗",
+                                    dialogType = DialogType.CHOICE_DIALOG
+                                )
+                            )
                         )
                     }
-                    val speechListener = remember { KeywordSpeechListener(initialTriggers = triggers) }
+                    val speechListener =
+                        remember { KeywordSpeechListener(initialTriggers = triggers) }
                     var showKeywordDialog by remember { mutableStateOf(false) }
                     var showTriggerDialog by remember { mutableStateOf(false) }
                     var idleBgmAsset by remember { mutableStateOf("bgm.mp3") }
                     var activeTrigger by remember { mutableStateOf<KeywordTrigger?>(null) }
                     var affectionEventId by remember { mutableLongStateOf(0L) }
-                    var affectionEventDelta by remember { mutableStateOf(0f) }
+                    var affectionEventDelta by remember { mutableFloatStateOf(0f) }
 
                     fun queueAffectionChange(delta: Float) {
                         affectionEventDelta = delta
@@ -105,7 +111,7 @@ class MainActivity : ComponentActivity() {
                         speechListener.updateTriggers(triggers)
                     }
 
-                    LaunchedEffect(showTriggerDialog, speechListener) {
+                    LaunchedEffect(showTriggerDialog) {
                         if (showTriggerDialog) {
                             speechListener.stopListening()
                         } else if (!showKeywordDialog) {
@@ -113,7 +119,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    LaunchedEffect(speechListener) {
+                    LaunchedEffect(Unit) {
                         speechListener.keywordTriggers.collect { trigger ->
                             Log.d("MainActivity", "Keyword triggered: ${trigger.keyword}")
                             speechListener.stopListening()
@@ -122,18 +128,14 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    DisposableEffect(lifecycleOwner, speechListener) {
-                        val observer = LifecycleEventObserver { _, event ->
-                            when (event) {
-                                Lifecycle.Event.ON_START -> speechListener.startListening()
-                                Lifecycle.Event.ON_STOP -> speechListener.stopListening()
-                                else -> Unit
+                    LifecycleStartEffect(Unit) {
+                        speechListener.startListening()
+                        onStopOrDispose {
+                            if (lifecycle.currentState == Lifecycle.State.CREATED) {
+                                speechListener.stopListening()
+                            } else {
+                                speechListener.release()
                             }
-                        }
-                        lifecycleOwner.lifecycle.addObserver(observer)
-                        onDispose {
-                            lifecycleOwner.lifecycle.removeObserver(observer)
-                            speechListener.release()
                         }
                     }
 
@@ -144,12 +146,12 @@ class MainActivity : ComponentActivity() {
                         },
                         isDialogVisible = showKeywordDialog || showTriggerDialog,
                         idleBgmAsset = idleBgmAsset,
-                            onManageTriggers = {
+                        onManageTriggers = {
                             speechListener.stopListening()
                             showTriggerDialog = true
-                            },
-                            affectionEventId = affectionEventId,
-                            affectionEventDelta = affectionEventDelta
+                        },
+                        affectionEventId = affectionEventId,
+                        affectionEventDelta = affectionEventDelta
                     )
 
                     if (showKeywordDialog) {
@@ -190,13 +192,15 @@ class MainActivity : ComponentActivity() {
                             triggers = triggers,
                             onAddTrigger = { keyword, dialogType ->
                                 val cleaned = keyword.trim()
-                                val duplicate = triggers.any { it.keyword.equals(cleaned, ignoreCase = true) }
+                                val duplicate =
+                                    triggers.any { it.keyword.equals(cleaned, ignoreCase = true) }
                                 if (cleaned.isEmpty()) {
                                     Log.w("MainActivity", "Attempted to add empty keyword")
                                 } else if (duplicate) {
                                     Log.w("MainActivity", "Keyword already exists: $cleaned")
                                 } else {
-                                    val newTrigger = KeywordTrigger(keyword = cleaned, dialogType = dialogType)
+                                    val newTrigger =
+                                        KeywordTrigger(keyword = cleaned, dialogType = dialogType)
                                     Log.d("MainActivity", "Keyword added: ${newTrigger.keyword}")
                                     triggers = triggers + newTrigger
                                 }
@@ -204,10 +208,16 @@ class MainActivity : ComponentActivity() {
                             onUpdateTrigger = { original, updated ->
                                 val cleaned = updated.keyword.trim()
                                 val duplicate = triggers.any {
-                                    it.id != original.id && it.keyword.equals(cleaned, ignoreCase = true)
+                                    it.id != original.id && it.keyword.equals(
+                                        cleaned,
+                                        ignoreCase = true
+                                    )
                                 }
                                 if (cleaned.isEmpty()) {
-                                    Log.w("MainActivity", "Attempted to update keyword to empty value")
+                                    Log.w(
+                                        "MainActivity",
+                                        "Attempted to update keyword to empty value"
+                                    )
                                 } else if (duplicate) {
                                     Log.w("MainActivity", "Keyword already exists: $cleaned")
                                 } else {
