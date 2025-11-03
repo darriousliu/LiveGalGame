@@ -4,9 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,9 +24,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import kotlinx.coroutines.flow.collect
 import com.example.livegg1.dialog.KeywordDialog
 import com.example.livegg1.dialog.TriggerManagementDialog
+import com.example.livegg1.ext.setImmersiveFullscreen
 import com.example.livegg1.model.DialogType
 import com.example.livegg1.model.KeywordTrigger
 import com.example.livegg1.speech.KeywordSpeechListener
@@ -50,15 +50,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         // 设置全屏沉浸式模式
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            // 隐藏导航栏
-            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            // 隐藏状态栏
-            or View.SYSTEM_UI_FLAG_FULLSCREEN
-        )
+        setImmersiveFullscreen()
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 

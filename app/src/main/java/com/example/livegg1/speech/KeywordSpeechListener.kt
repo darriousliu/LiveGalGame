@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.SharedFlow
 class KeywordSpeechListener(
     initialTriggers: List<KeywordTrigger> = emptyList()
 ) {
-
     private val _keywordTriggers = MutableSharedFlow<KeywordTrigger>(extraBufferCapacity = 1)
     val keywordTriggers: SharedFlow<KeywordTrigger> = _keywordTriggers
 

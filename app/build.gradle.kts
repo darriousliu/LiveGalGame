@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -5,6 +6,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
 }
 
 android {
@@ -29,7 +36,8 @@ android {
                 val props = Properties().apply {
                     FileInputStream(keystorePropsFile).use { load(it) }
                 }
-                storeFile = rootProject.file(props.getProperty("keystore.path") ?: "release.keystore")
+                storeFile =
+                    rootProject.file(props.getProperty("keystore.path") ?: "release.keystore")
                 storePassword = props.getProperty("keystore.password")
                 keyAlias = props.getProperty("key.alias")
                 keyPassword = props.getProperty("key.password")
@@ -59,16 +67,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -77,10 +81,12 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.core)
 
     // Vosk dependency
-    implementation("com.alphacephei:vosk-android:0.3.32")
-    implementation("net.java.dev.jna:jna:5.14.0@aar")
+    implementation(libs.vosk.android)
+    //noinspection UseTomlInstead
+    implementation("net.java.dev.jna:jna:5.18.1@aar")
 
     // CameraX dependencies
     implementation(libs.androidx.camera.core)
